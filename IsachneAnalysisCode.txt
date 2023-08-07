@@ -1,0 +1,2076 @@
+#################
+# Preliminaries #
+#################
+{
+#libraries
+{
+--------------------------------------------------------------------
+library(tidyverse)
+library(geometry)
+library(reshape2)
+library(RColorBrewer)
+library(plot3D)
+library(ggplot2)
+library(gridExtra)
+library(plyr)
+library(rgl)
+}
+#Data
+{
+Isachne.Data <- read.csv("~/Isachne Data.csv")
+View(Isachne.Data)
+}
+}
+
+############
+#Input Data#
+############
+{
+#Data into Vectors 
+{
+Specimen<-unlist(Isachne.Data[1], TRUE, FALSE)
+Species<-unlist(Isachne.Data[2], TRUE, FALSE)
+Internode.Distance<-unlist(Isachne.Data[3+17], TRUE, FALSE)
+Sheath.Length<-unlist(Isachne.Data[4+17], TRUE, FALSE)
+Internode.Ratio<-unlist(Isachne.Data[5+17], TRUE, FALSE)
+Ligule<-unlist(Isachne.Data[6+17], TRUE, FALSE)
+Blade.Length<-unlist(Isachne.Data[7+17], TRUE, FALSE)
+Blade.Width<-unlist(Isachne.Data[8+17], TRUE, FALSE)
+Panicle.Length<-unlist(Isachne.Data[9+17], TRUE, FALSE)
+Panicle.Width<-unlist(Isachne.Data[10+17], TRUE, FALSE)
+Spikelet.Length<-unlist(Isachne.Data[11], TRUE, FALSE)
+L.Glume.Length<-unlist(Isachne.Data[12], TRUE, FALSE)
+U.Glume.Length<-unlist(Isachne.Data[13], TRUE, FALSE)
+L.Lemma.Length<-unlist(Isachne.Data[14], TRUE, FALSE)
+U.Lemma.Length<-unlist(Isachne.Data[15], TRUE, FALSE)
+L.Lemma.Width<-unlist(Isachne.Data[16], TRUE, FALSE)
+U.Lemma.Width<-unlist(Isachne.Data[17], TRUE, FALSE)
+Rachilla<-unlist(Isachne.Data[18], TRUE, FALSE)
+}
+
+#Polygon Min/Max Data
+#Min blade length [1], max blade length [2], min blade width [3], max blade width [4], min pan. length [5], 
+#max pan. length [6], min spikelet length [7], max spikelet length [8], min glume length [9], max glume length [10],
+#min L.lemma length [11], max L. lemma length [12], min U. lemma length [13], max U. lemma length [14]
+{
+buettneri<-c(	50,	200,	5,	17,	100,	200,	0.8,	1.4,	0.6,	1.2,	0.6,	1.2,	0.6,	1.2)
+homonyma<-c(15,	30,	3,	6,	15,	40,	1.2,	1.3,	1.45,	1.55,	1.7,	1.8,	1.7,	1.8)
+humbertiana<-	c(70,	90,	5,	6,	45,	55,	1.95,	2.05,	1.7,	1.8,	1.9,	2,	1.3,	1.4)
+humicola<-c(45,	80,	3.5,	4,	25,	30,	1.3,	1.4,	1.3,	1.4,	1,	1.2,	1,	1.2)
+longifolia<-c(	80,	160,	6,	10,	100,	200,	1.5,	2,	1.5,	2,	1.45,	1.55,	1.45,	1.55)
+mauritiana<-c(	50,	200,	5,	17,	100,	200,	1.2,	1.8,	1.2,	1.8,	1,	1.5,	1,	1.5)
+muscicola	<-c(120,	150,	8,	11,	150,	250,	2,	2.5,	1.9,	2.4,	1.8,	2,	1.7,	1.8)
+vaughnii<-c(	10,	60,	2.5,	5,	35,	100,	2.6,	3,	2.4,	2.6,	1.95,	2.05,	1.95,	2.05)
+}
+
+}
+
+###################
+# N-Cube analysis #
+###################
+{
+######################
+#Generation of N-Cubes
+
+{
+#buettneri# 
+{
+  a1<-c(50,200)
+  a2<-c(5,17)
+  a3<-c(100,200)
+  a4<-c(0.8,1.4)
+  a5<-c(0.6,1.2)
+  a6<-c(0.6,1.2)
+  a7<-c(0.6,1.2)
+  buett.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#homonyma#
+{
+  a1<-c(15,30)
+  a2<-c(3,6)
+  a3<-c(15,40)
+  a4<-c(1.2,1.3)
+  a5<-c(1.45,1.55)
+  a6<-c(1.7,1.8)
+  a7<-c(1.7,1.8)
+  homo.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#humbertiana#
+{
+  a1<-c(70,90)
+  a2<-c(5,6)
+  a3<-c(45,55)
+  a4<-c(1.95,2.05)
+  a5<-c(1.7,1.8)
+  a6<-c(1.9,2)
+  a7<-c(1.3,1.4)
+  humb.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#humicola#
+{
+  a1<-c(45,80)
+  a2<-c(3.5,4)
+  a3<-c(25,30)
+  a4<-c(1.3,1.4)
+  a5<-c(1.3,1.4)
+  a6<-c(1,1.2)
+  a7<-c(1,1.2)
+  humi.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#longifolia#
+{
+  a1<-c(80,160)
+  a2<-c(6,10)
+  a3<-c(100,200)
+  a4<-c(1.5,2)
+  a5<-c(1.5,2)
+  a6<-c(1.45,1.55)
+  a7<-c(1.45,1.55)
+  long.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#mauritiana#
+{
+  a1<-c(50,200)
+  a2<-c(5,17)
+  a3<-c(100,200)
+  a4<-c(1.2,1.8)
+  a5<-c(1.2,1.8)
+  a6<-c(1,1.5)
+  a7<-c(1,1.5)
+  maur.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#muscicola#
+{
+  a1<-c(120,150)
+  a2<-c(8,11)
+  a3<-c(150,250)
+  a4<-c(2,2.5)
+  a5<-c(1.9,2.4)
+  a6<-c(1.8,2)
+  a7<-c(1.7,1.8)
+  musc.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+#vaughnii#
+{
+  a1<-c(10,60)
+  a2<-c(2.5,5)
+  a3<-c(35,100)
+  a4<-c(2.6,3)
+  a5<-c(2.4,2.6)
+  a6<-c(1.95,2.05)
+  a7<-c(1.95,2.05)
+  vaug.mat<-as.matrix(expand.grid(a1,a2,a3,a4,a5,a6,a7))
+}
+
+#Test Matrices
+{
+  buett.mat
+  homo.mat
+  humb.mat
+  humi.mat
+  long.mat
+  maur.mat
+  musc.mat
+  vaug.mat
+}
+
+#convhulln
+{
+buett.hull<-convhulln(buett.mat, output.options = TRUE)
+homo.hull<-convhulln(homo.mat, output.options = TRUE)
+humb.hull<-convhulln(humb.mat, output.options = TRUE)
+humi.hull<-convhulln(humi.mat, output.options = TRUE)
+long.hull<-convhulln(long.mat, output.options = TRUE)
+maur.hull<-convhulln(maur.mat, output.options = TRUE)
+musc.hull<-convhulln(musc.mat, output.options = TRUE)
+vaug.hull<-convhulln(vaug.mat, output.options = TRUE)
+}
+
+
+
+################################
+#Volumes of Phenotypic hyperspace
+{
+  pheno.vol<-data.frame("buettneri"=buett.hull$vol,"homonyma"=homo.hull$vol,"humbertiana"=humb.hull$vol,
+                        "humicola"=humi.hull$vol,"longifolia"=long.hull$vol,"mauritiana"=maur.hull$vol,
+                        "muscicola"=musc.hull$vol, "vaughnii"=vaug.hull$vol)
+}
+}
+
+#########################################################
+#Determine Volume of Intersection between each 2 matrices
+{
+  b1<-(intersectn(buett.mat, homo.mat, return.chs = FALSE))
+  b2<-(intersectn(buett.mat, humb.mat, return.chs = FALSE))
+  b3<-(intersectn(buett.mat, humi.mat, return.chs = FALSE))
+  b4<-(intersectn(buett.mat, long.mat, return.chs = FALSE))
+  b5<-(intersectn(buett.mat, maur.mat, return.chs = FALSE))
+  b6<-(intersectn(buett.mat, musc.mat, return.chs = FALSE))
+  b7<-(intersectn(buett.mat,vaug.mat, return.chs = FALSE))
+  {
+    b8<-(intersectn(homo.mat, humb.mat, return.chs = FALSE))
+    b9<-(intersectn(homo.mat, humi.mat,  return.chs = FALSE))
+    b10<-(intersectn(homo.mat, long.mat, return.chs = FALSE))
+    b11<-(intersectn(homo.mat, maur.mat, return.chs = FALSE))
+    b12<-(intersectn(homo.mat, musc.mat, return.chs = FALSE))
+    b13<-(intersectn(homo.mat, vaug.mat, return.chs = FALSE))
+    {
+      b14<-(intersectn(humb.mat, humi.mat, return.chs = FALSE))
+      b15<-(intersectn(humb.mat, long.mat, return.chs = FALSE))
+      b16<-(intersectn(humb.mat, maur.mat, return.chs = FALSE))
+      b17<-(intersectn(humb.mat, musc.mat, return.chs = FALSE))
+      b18<-(intersectn(humb.mat, vaug.mat, return.chs = FALSE))
+      {
+        b19<-(intersectn(humi.mat, long.mat, return.chs = FALSE))
+        b20<-(intersectn(humi.mat, maur.mat, return.chs = FALSE))
+        b21<-(intersectn(humi.mat, musc.mat, return.chs = FALSE))
+        b22<-(intersectn(humi.mat, vaug.mat, return.chs = FALSE))
+        {
+          b23<-(intersectn(long.mat, maur.mat, return.chs = FALSE))
+          b24<-(intersectn(long.mat, musc.mat, return.chs = FALSE))
+          b25<-(intersectn(long.mat, vaug.mat, return.chs = FALSE))
+          {
+            b26<-(intersectn(maur.mat, musc.mat, return.chs = FALSE))
+            b27<-(intersectn(maur.mat, vaug.mat, return.chs = FALSE))
+            {
+              b28<-(intersectn(musc.mat, vaug.mat, return.chs = FALSE))
+            }
+          }
+        }
+      }
+    }
+  }
+  sp.inter<-matrix(nrow=4, ncol=7)
+b<-as.vector(c(b1$ch$vol,b2$ch$vol,b3$ch$vol,b4$ch$vol,b5$ch$vol,b6$ch$vol,b7$ch$vol,b8$ch$vol,b9$ch$vol,b10$ch$vol,
+               b11$ch$vol,b12$ch$vol,b13$ch$vol,b14$ch$vol,b15$ch$vol,b16$ch$vol,b17$ch$vol,b18$ch$vol,b19$ch$vol,
+               b20$ch$vol,b21$ch$vol,b22$ch$vol,b23$ch$vol,b24$ch$vol,b25$ch$vol,b26$ch$vol,b27$ch$vol,b28$ch$vol))
+b<-unlist(b)
+b
+  for (i in 1:28){
+    sp.inter[i]<-b[i]
+    i<-i+1
+  }
+  }
+
+#Table of taxonomic species overlap
+sp.inter
+#Table of Volume of each taxonomic species
+pheno.vol
+
+################################################
+#Test to see if points fall within n-cube
+################################################
+
+{b.l<-as.vector(Isachne.Data$blade.length.1)
+b.w<-as.vector(Isachne.Data$Blade.width.1)
+p.l<-as.vector(Isachne.Data$Panicle.length.1)
+s.l<-as.vector(Isachne.Data$Spikelet.length)
+g.l<-as.vector(Isachne.Data$Glume.length)
+l.l.l<-as.vector(Isachne.Data$L.Lemma.length)
+u.l.l<-as.vector(Isachne.Data$U.Lemma.length)
+
+isachne.points<-matrix(data=c(b.l,b.w,p.l,s.l,g.l,l.l.l,u.l.l), ncol=7, nrow=64)
+
+buett.test<-inhulln(buett.hull,isachne.points)
+which(buett.test)
+
+homo.test<-inhulln(homo.hull,isachne.points)
+which(homo.test)
+
+humb.test<-inhulln(humb.hull,isachne.points)
+which(humb.test)
+
+humi.test<-inhulln(humi.hull,isachne.points)
+which(humi.test)
+
+long.test<-inhulln(long.hull,isachne.points)
+which(long.test)
+
+maur.test<-inhulln(maur.hull,isachne.points)
+which(maur.test)
+
+musc.test<-inhulln(musc.hull,isachne.points)
+which(musc.test)
+
+vaug.test<-inhulln(vaug.hull,isachne.points)
+which(vaug.test)
+
+isachne.test<-buett.test
+
+for (i in 1:64){
+  if (maur.test[i]==TRUE){
+    isachne.test[i]<-maur.test[i]
+  }
+  i<-i+1
+}}
+
+isachne.test
+which(isachne.test)# Returns the position of specimens whose morphological traits fall within range of taxonomic species description
+seven<-which(isachne.test)
+seven.maur<-seven[c(2:14)]
+
+#############################################
+#Test each character and species individually
+{
+#buettneri#
+{buett.result<-matrix(ncol=7,nrow=64)
+for (i in 1:448){
+  if (i<65){
+    if (is.na(b.l[i])){
+      buett.result[i]<-NA
+    }else if (b.l[i]>=buettneri[1]&&b.l[i]<=buettneri[2]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i >64 && i < 129){
+    if (is.na(b.w[i-64])){
+      buett.result[i]<-NA
+    }else if(b.w[i-64]>=buettneri[3]&&b.w[i-64]<=buettneri[4]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i > 128 && i < 193){
+    if (is.na(p.l[i-128])){
+      buett.result[i]<-NA
+    }else if(p.l[i-128]>=buettneri[5]&&p.l[i-128]<=buettneri[6]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i > 192 && i < 257){
+    if (is.na(s.l[i-192])){
+      buett.result[i]<-NA
+    }else if(s.l[i-192]>=buettneri[7]&&s.l[i-192]<=buettneri[8]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i > 256 && i < 321){
+    if (is.na(g.l[i-256])){
+      buett.result[i]<-NA
+    }else if(g.l[i-256]>=buettneri[9]&&g.l[i-256]<=buettneri[10]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i > 320 && i < 385){
+    if (is.na(l.l.l[i-320])){
+      buett.result[i]<-NA
+    }else if(l.l.l[i-320]>=buettneri[11]&&l.l.l[i-320]<=buettneri[12]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }else if (i > 384){
+    if (is.na(u.l.l[i-384])){
+      buett.result[i]<-NA
+    }else if (u.l.l[i-384]>=buettneri[13]&&u.l.l[i-384]<=buettneri[14]){
+      buett.result[i]<-TRUE
+    }else{
+      buett.result[i]<-FALSE
+    }
+  }
+  i<-i+1
+}
+buett.table<-as.data.frame(t(buett.result))
+colnames(buett.table)<-c(1:64)
+}
+buett.result
+buett.table
+
+#homonyma#
+{homo.result<-matrix(ncol=7,nrow=64)
+for (i in 1:448){
+  if (i<65){
+    if (is.na(b.l[i])){
+      homo.result[i]<-NA
+    }else if (b.l[i]>=homonyma[1]&&b.l[i]<=homonyma[2]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i >64 && i < 129){
+    if (is.na(b.w[i-64])){
+      homo.result[i]<-NA
+    }else if(b.w[i-64]>=homonyma[3]&&b.w[i-64]<=homonyma[4]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i > 128 && i < 193){
+    if (is.na(p.l[i-128])){
+      homo.result[i]<-NA
+    }else if(p.l[i-128]>=homonyma[5]&&p.l[i-128]<=homonyma[6]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i > 192 && i < 257){
+    if (is.na(s.l[i-192])){
+      homo.result[i]<-NA
+    }else if(s.l[i-192]>=homonyma[7]&&s.l[i-192]<=homonyma[8]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i > 256 && i < 321){
+    if (is.na(g.l[i-256])){
+      homo.result[i]<-NA
+    }else if(g.l[i-256]>=homonyma[9]&&g.l[i-256]<=homonyma[10]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i > 320 && i < 385){
+    if (is.na(l.l.l[i-320])){
+      homo.result[i]<-NA
+    }else if(l.l.l[i-320]>=homonyma[11]&&l.l.l[i-320]<=homonyma[12]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }else if (i > 384){
+    if (is.na(u.l.l[i-384])){
+      homo.result[i]<-NA
+    }else if (u.l.l[i-384]>=homonyma[13]&&u.l.l[i-384]<=homonyma[14]){
+      homo.result[i]<-TRUE
+    }else{
+      homo.result[i]<-FALSE
+    }
+  }
+  i<-i+1
+  }
+  homo.table<-as.data.frame(t(homo.result))
+  colnames(homo.table)<-c(1:64)
+  }
+homo.result
+homo.table
+
+#humbertiana#
+{humb.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        humb.result[i]<-NA
+      }else if (b.l[i]>=humbertiana[1]&&b.l[i]<=humbertiana[2]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        humb.result[i]<-NA
+      }else if(b.w[i-64]>=humbertiana[3]&&b.w[i-64]<=humbertiana[4]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        humb.result[i]<-NA
+      }else if(p.l[i-128]>=humbertiana[5]&&p.l[i-128]<=humbertiana[6]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        humb.result[i]<-NA
+      }else if(s.l[i-192]>=humbertiana[7]&&s.l[i-192]<=humbertiana[8]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        humb.result[i]<-NA
+      }else if(g.l[i-256]>=humbertiana[9]&&g.l[i-256]<=humbertiana[10]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        humb.result[i]<-NA
+      }else if(l.l.l[i-320]>=humbertiana[11]&&l.l.l[i-320]<=humbertiana[12]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        humb.result[i]<-NA
+      }else if (u.l.l[i-384]>=humbertiana[13]&&u.l.l[i-384]<=humbertiana[14]){
+        humb.result[i]<-TRUE
+      }else{
+        humb.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  humb.table<-as.data.frame(t(humb.result))
+  colnames(humb.table)<-c(1:64)
+  }
+humb.result
+humb.table
+
+#humicola#
+{humi.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        humi.result[i]<-NA
+      }else if (b.l[i]>=humicola[1]&&b.l[i]<=humicola[2]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        humi.result[i]<-NA
+      }else if(b.w[i-64]>=humicola[3]&&b.w[i-64]<=humicola[4]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        humi.result[i]<-NA
+      }else if(p.l[i-128]>=humicola[5]&&p.l[i-128]<=humicola[6]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        humi.result[i]<-NA
+      }else if(s.l[i-192]>=humicola[7]&&s.l[i-192]<=humicola[8]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        humi.result[i]<-NA
+      }else if(g.l[i-256]>=humicola[9]&&g.l[i-256]<=humicola[10]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        humi.result[i]<-NA
+      }else if(l.l.l[i-320]>=humicola[11]&&l.l.l[i-320]<=humicola[12]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        humi.result[i]<-NA
+      }else if (u.l.l[i-384]>=humicola[13]&&u.l.l[i-384]<=humicola[14]){
+        humi.result[i]<-TRUE
+      }else{
+        humi.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  humi.table<-as.data.frame(t(humi.result))
+  colnames(humi.table)<-c(1:64)
+  }
+humi.result
+humi.table
+
+#longifolia#
+{long.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        long.result[i]<-NA
+      }else if (b.l[i]>=longifolia[1]&&b.l[i]<=longifolia[2]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        long.result[i]<-NA
+      }else if(b.w[i-64]>=longifolia[3]&&b.w[i-64]<=longifolia[4]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        long.result[i]<-NA
+      }else if(p.l[i-128]>=longifolia[5]&&p.l[i-128]<=longifolia[6]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        long.result[i]<-NA
+      }else if(s.l[i-192]>=longifolia[7]&&s.l[i-192]<=longifolia[8]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        long.result[i]<-NA
+      }else if(g.l[i-256]>=longifolia[9]&&g.l[i-256]<=longifolia[10]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        long.result[i]<-NA
+      }else if(l.l.l[i-320]>=longifolia[11]&&l.l.l[i-320]<=longifolia[12]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        long.result[i]<-NA
+      }else if (u.l.l[i-384]>=longifolia[13]&&u.l.l[i-384]<=longifolia[14]){
+        long.result[i]<-TRUE
+      }else{
+        long.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  long.table<-as.data.frame(t(long.result))
+  colnames(long.table)<-c(1:64)
+  }
+long.result
+long.table
+
+#mauritiana#
+{maur.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        maur.result[i]<-NA
+      }else if (b.l[i]>=mauritiana[1]&&b.l[i]<=mauritiana[2]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        maur.result[i]<-NA
+      }else if(b.w[i-64]>=mauritiana[3]&&b.w[i-64]<=mauritiana[4]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        maur.result[i]<-NA
+      }else if(p.l[i-128]>=mauritiana[5]&&p.l[i-128]<=mauritiana[6]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        maur.result[i]<-NA
+      }else if(s.l[i-192]>=mauritiana[7]&&s.l[i-192]<=mauritiana[8]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        maur.result[i]<-NA
+      }else if(g.l[i-256]>=mauritiana[9]&&g.l[i-256]<=mauritiana[10]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        maur.result[i]<-NA
+      }else if(l.l.l[i-320]>=mauritiana[11]&&l.l.l[i-320]<=mauritiana[12]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        maur.result[i]<-NA
+      }else if (u.l.l[i-384]>=mauritiana[13]&&u.l.l[i-384]<=mauritiana[14]){
+        maur.result[i]<-TRUE
+      }else{
+        maur.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  maur.table<-as.data.frame(t(maur.result))
+  colnames(maur.table)<-c(1:64)
+  }
+maur.result
+maur.table
+
+#muscicola#
+{musc.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        musc.result[i]<-NA
+      }else if (b.l[i]>=muscicola[1]&&b.l[i]<=muscicola[2]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        musc.result[i]<-NA
+      }else if(b.w[i-64]>=muscicola[3]&&b.w[i-64]<=muscicola[4]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        musc.result[i]<-NA
+      }else if(p.l[i-128]>=muscicola[5]&&p.l[i-128]<=muscicola[6]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        musc.result[i]<-NA
+      }else if(s.l[i-192]>=muscicola[7]&&s.l[i-192]<=muscicola[8]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        musc.result[i]<-NA
+      }else if(g.l[i-256]>=muscicola[9]&&g.l[i-256]<=muscicola[10]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        musc.result[i]<-NA
+      }else if(l.l.l[i-320]>=muscicola[11]&&l.l.l[i-320]<=muscicola[12]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        musc.result[i]<-NA
+      }else if (u.l.l[i-384]>=muscicola[13]&&u.l.l[i-384]<=muscicola[14]){
+        musc.result[i]<-TRUE
+      }else{
+        musc.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  musc.table<-as.data.frame(t(musc.result))
+  colnames(musc.table)<-c(1:64)
+  }
+musc.result
+musc.table
+
+#vaughnii#
+{vaug.result<-matrix(ncol=7,nrow=64)
+  for (i in 1:448){
+    if (i<65){
+      if (is.na(b.l[i])){
+        vaug.result[i]<-NA
+      }else if (b.l[i]>=vaughnii[1]&&b.l[i]<=vaughnii[2]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i >64 && i < 129){
+      if (is.na(b.w[i-64])){
+        vaug.result[i]<-NA
+      }else if(b.w[i-64]>=vaughnii[3]&&b.w[i-64]<=vaughnii[4]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i > 128 && i < 193){
+      if (is.na(p.l[i-128])){
+        vaug.result[i]<-NA
+      }else if(p.l[i-128]>=vaughnii[5]&&p.l[i-128]<=vaughnii[6]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i > 192 && i < 257){
+      if (is.na(s.l[i-192])){
+        vaug.result[i]<-NA
+      }else if(s.l[i-192]>=vaughnii[7]&&s.l[i-192]<=vaughnii[8]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i > 256 && i < 321){
+      if (is.na(g.l[i-256])){
+        vaug.result[i]<-NA
+      }else if(g.l[i-256]>=vaughnii[9]&&g.l[i-256]<=vaughnii[10]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i > 320 && i < 385){
+      if (is.na(l.l.l[i-320])){
+        vaug.result[i]<-NA
+      }else if(l.l.l[i-320]>=vaughnii[11]&&l.l.l[i-320]<=vaughnii[12]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }else if (i > 384){
+      if (is.na(u.l.l[i-384])){
+        vaug.result[i]<-NA
+      }else if (u.l.l[i-384]>=vaughnii[13]&&u.l.l[i-384]<=vaughnii[14]){
+        vaug.result[i]<-TRUE
+      }else{
+        vaug.result[i]<-FALSE
+      }
+    }
+    i<-i+1
+  }
+  vaug.table<-as.data.frame(t(vaug.result))
+  colnames(vaug.table)<-c(1:64)
+  }
+vaug.result
+vaug.table
+}
+
+# Visualize extent point falls outside of each box
+{# buettneri
+{
+  buett.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    buett.box[i]<-length(which(unlist(as.vector(buett.table[i]))))
+    i<-i+1
+    }
+  }
+
+# homonyma
+{
+  homo.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    homo.box[i]<-length(which(unlist(as.vector(homo.table[i]))))
+    i<-i+1
+  }
+}
+
+# humbertiana
+{
+  humb.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    humb.box[i]<-length(which(unlist(as.vector(humb.table[i]))))
+    i<-i+1
+  }
+}
+
+# humicola
+{
+  humi.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    humi.box[i]<-length(which(unlist(as.vector(humi.table[i]))))
+    i<-i+1
+  }
+}
+# longifolia
+{
+  long.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    long.box[i]<-length(which(unlist(as.vector(long.table[i]))))
+    i<-i+1
+  }
+}
+
+# mauritiana
+{
+  maur.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    maur.box[i]<-length(which(unlist(as.vector(maur.table[i]))))
+    i<-i+1
+  }
+}
+
+# muscicola
+{
+  musc.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    musc.box[i]<-length(which(unlist(as.vector(musc.table[i]))))
+    i<-i+1
+  }
+}
+
+# vaughnii
+{
+  vaug.box<-vector("numeric",length=64)
+  for (i in 1:64){
+    vaug.box[i]<-length(which(unlist(as.vector(vaug.table[i]))))
+    i<-i+1
+  }
+}
+
+  # compare each taxonomic species
+{
+isachne.box<-t(data.frame("buettneri"=buett.box,"homonyma"=homo.box,"humbertiana"=humb.box,"humicola"=humi.box,
+           "longifolia"=long.box,"mauritiana"=maur.box,"muscicola"=musc.box,"vaughnii"=vaug.box))
+
+colnames(isachne.box)<-c(1:64)
+
+isachne.box.result<-t(as.data.frame(vector("numeric",length=64)))
+rownames(isachne.box.result)<-"1"
+for(i in 1:64){
+  if (max(isachne.box[,i])>3){
+  isachne.box.result[i]<-max(isachne.box[,i])
+  }else if(max(isachne.box[,i])==3){
+    isachne.box.result[i]<-3
+  }else if(max(isachne.box[,i])==2){
+    isachne.box.result[i]<-2
+  }else if(max(isachne.box[,i])==1){
+    isachne.box.result[i]<-1
+  }else{
+    isachne.box.result[i]<-0
+  }
+  i<-i+1
+}
+isachne.box[,15]
+
+isachne.box.name<-t(as.data.frame(vector("character",length=64)))
+rownames(isachne.box.name)<-"1"
+for(i in 1:64){
+  if (max(isachne.box[,i])<=3){
+    isachne.box.name[i]<-NA
+  }else if (which.max(isachne.box[,i])==1){
+    isachne.box.name[i]<-"buettneri"
+  }else if (which.max(isachne.box[,i])==2){
+    isachne.box.name[i]<-"homonyma"
+  }else if (which.max(isachne.box[,i])==3){
+    isachne.box.name[i]<-"humbertiana"
+  }else if (which.max(isachne.box[,i])==4){
+    isachne.box.name[i]<-"humicola"
+  }else if (which.max(isachne.box[,i])==5){
+    isachne.box.name[i]<-"longifolia"
+  }else if (which.max(isachne.box[,i])==6){
+    isachne.box.name[i]<-"mauritiana"
+  }else if (which.max(isachne.box[,i])==7){
+    isachne.box.name[i]<-"muscicola"
+  }else if (which.max(isachne.box[,i])==8){
+    isachne.box.name[i]<-"vaughnii"
+  }
+  i<-i+1
+}
+isachne.box.result
+isachne.box.name
+
+colnames(isachne.box.result)<-isachne.box.name
+}
+}
+
+# result: which box is closest and how many characters fall within
+
+
+#Test for each specimen for any species
+isachne.result<-matrix(nrow=64,ncol=7)
+for(i in 1:448){
+  if(i<65){
+    if (is.na(b.l[i])){
+      isachne.result[i]<-NA
+    }else if (((b.l[i]>=buettneri[1]&&b.l[i]<=buettneri[2])||(b.l[i]>=homonyma[1]&&b.l[i]<=homonyma[2])||
+               (b.l[i]>=humbertiana[1]&&b.l[i]<=humbertiana[2])||(b.l[i]>=humicola[1]&&b.l[i]<=humicola[2]))||
+              ((b.l[i]>=longifolia[1]&&b.l[i]<=longifolia[2])||(b.l[i]>=mauritiana[1]&&b.l[i]<=mauritiana[2])||
+               (b.l[i]>=muscicola[1]&&b.l[i]<=muscicola[2])||(b.l[i]>=vaughnii[1]&&b.l[i]<=vaughnii[2]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }else if(i>64&&i<129){
+    t<-i-64
+    if (is.na(b.w[t])){
+      isachne.result[i]<-NA
+    }else if (((b.w[t]>=buettneri[3]&&b.w[t]<=buettneri[4])||(b.w[t]>=homonyma[3]&&b.w[t]<=homonyma[4])||
+               (b.w[t]>=humbertiana[3]&&b.w[t]<=humbertiana[4])||(b.w[t]>=humicola[3]&&b.w[t]<=humicola[4]))||
+              ((b.w[t]>=longifolia[3]&&b.w[t]<=longifolia[4])||(b.w[t]>=mauritiana[3]&&b.w[t]<=mauritiana[4])||
+               (b.w[t]>=muscicola[3]&&b.w[t]<=muscicola[4])||(b.w[t]>=vaughnii[3]&&b.w[t]<=vaughnii[4]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+      }
+  }else if(i>128&&i<193){
+    t<-i-128
+    if (is.na(p.l[t])){
+      isachne.result[i]<-NA
+    }else if (((p.l[t]>=buettneri[5]&&p.l[t]<=buettneri[6])||(p.l[t]>=homonyma[5]&&p.l[t]<=homonyma[6])||
+               (p.l[t]>=humbertiana[5]&&p.l[t]<=humbertiana[6])||(p.l[t]>=humicola[5]&&p.l[t]<=humicola[6]))||
+              ((p.l[t]>=longifolia[5]&&p.l[t]<=longifolia[6])||(p.l[t]>=mauritiana[5]&&p.l[t]<=mauritiana[6])||
+               (p.l[t]>=muscicola[5]&&p.l[t]<=muscicola[6])||(p.l[t]>=vaughnii[5]&&p.l[t]<=vaughnii[6]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }else if(i>192&&i<257){
+    t<-i-192
+    if (is.na(s.l[t])){
+      isachne.result[i]<-NA
+    }else if (((s.l[t]>=buettneri[7]&&s.l[t]<=buettneri[8])||(s.l[t]>=homonyma[7]&&s.l[t]<=homonyma[8])||
+               (s.l[t]>=humbertiana[7]&&s.l[t]<=humbertiana[8])||(s.l[t]>=humicola[7]&&s.l[t]<=humicola[8]))||
+              ((s.l[t]>=longifolia[7]&&s.l[t]<=longifolia[8])||(s.l[t]>=mauritiana[7]&&s.l[t]<=mauritiana[8])||
+               (s.l[t]>=muscicola[7]&&s.l[t]<=muscicola[8])||(s.l[t]>=vaughnii[7]&&s.l[t]<=vaughnii[8]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }else if(i>256&&i<321){
+    t<-i-256
+    if (is.na(g.l[t])){
+      isachne.result[i]<-NA
+    }else if (((g.l[t]>=buettneri[9]&&g.l[t]<=buettneri[10])||(g.l[t]>=homonyma[9]&&g.l[t]<=homonyma[10])||
+               (g.l[t]>=humbertiana[9]&&g.l[t]<=humbertiana[10])||(g.l[t]>=humicola[9]&&g.l[t]<=humicola[10]))||
+              ((g.l[t]>=longifolia[9]&&g.l[t]<=longifolia[10])||(g.l[t]>=mauritiana[9]&&g.l[t]<=mauritiana[10])||
+               (g.l[t]>=muscicola[9]&&g.l[t]<=muscicola[10])||(g.l[t]>=vaughnii[9]&&g.l[t]<=vaughnii[10]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }else if(i>320&&i<385){
+    t<-i-320
+    if (is.na(l.l.l[t])){
+      isachne.result[i]<-NA
+    }else if (((l.l.l[t]>=buettneri[11]&&l.l.l[t]<=buettneri[12])||(l.l.l[t]>=homonyma[11]&&l.l.l[t]<=homonyma[12])||
+               (l.l.l[t]>=humbertiana[11]&&l.l.l[t]<=humbertiana[12])||(l.l.l[t]>=humicola[11]&&l.l.l[t]<=humicola[12]))||
+              ((l.l.l[t]>=longifolia[11]&&l.l.l[t]<=longifolia[12])||(l.l.l[t]>=mauritiana[11]&&l.l.l[t]<=mauritiana[12])||
+               (l.l.l[t]>=muscicola[11]&&l.l.l[t]<=muscicola[12])||(l.l.l[t]>=vaughnii[11]&&l.l.l[t]<=vaughnii[12]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }else if(i>384){
+    t<-i-384
+    if (is.na(u.l.l[t])){
+      isachne.result[i]<-NA
+    }else if (((u.l.l[t]>=buettneri[13]&&u.l.l[t]<=buettneri[14])||(u.l.l[t]>=homonyma[13]&&u.l.l[t]<=homonyma[14])||
+               (u.l.l[t]>=humbertiana[13]&&u.l.l[t]<=humbertiana[14])||(u.l.l[t]>=humicola[13]&&u.l.l[t]<=humicola[14]))||
+              ((u.l.l[t]>=longifolia[13]&&u.l.l[t]<=longifolia[14])||(u.l.l[t]>=mauritiana[13]&&u.l.l[t]<=mauritiana[14])||
+               (u.l.l[t]>=muscicola[13]&&u.l.l[t]<=muscicola[14])||(u.l.l[t]>=vaughnii[13]&&u.l.l[t]<=vaughnii[14]))){
+      isachne.result[i]<-TRUE
+    }else{
+      isachne.result[i]<-FALSE
+    }
+  }
+  i<-i+1
+}
+
+}
+
+###########
+# Results #
+###########
+{
+
+# Plot histogram of specimens in each tax. species
+{
+  species <- c(rep("2" , 4) , rep("3" , 4) , rep("4" , 4) , rep("5" , 4), rep("6", 4), rep("7", 4) )
+  condition <- rep(c("buettneri" , "Indet" , "muscicola", "mauritiana") , 6)
+  value <- c(0,4,0,0,0,10,0,0,0,0,2,5,0,0,0,12,2,0,3,12,1,0,0,13)
+  data <- data.frame("# of Traits Within Hypervolume"=species,"Species Determined"=condition,"Number of Specimens"=value)
+  final.plot<-ggplot(data, aes(fill=condition, y=value, x=species)) + 
+    geom_bar(position="stack", stat="identity")+
+    xlab("Number of Phenotypic Characters") + 
+    ylab("Number of Specimens Within Taxon Limits")+
+    ggtitle("Specimens Within Taxonomic Species")
+  final.plot<- final.plot + guides(fill=guide_legend(title="Species of Best Fit"))
+}
+
+##########
+# Tables #
+##########
+{
+#manually set values for pheno.vol to remove n^-15 decimals
+{
+  pheno.vol[1]<-23328
+  pheno.vol[2]<-0.1125
+  pheno.vol[3]<-0.02
+  pheno.vol[4]<-0.035
+  pheno.vol[5]<-80
+  pheno.vol[6]<-16200
+  pheno.vol[7]<-45
+  pheno.vol[8]<-6.5
+}
+
+#generate figure to interpret species overlap
+{
+sp.inter.table<-as.data.frame(matrix(rep(0,64),nrow=8,ncol=8))
+row.names(sp.inter.table)<-c("buet","homo","humb","humi","long","maur","musc","vaug")
+colnames(sp.inter.table)<-c("buet","homo","humb","humi","long","maur","musc","vaug")
+for(i in 1:8){
+  sp.inter.table[i,i]<-1
+  i<-i+1
+}
+#define long/maur overlap in terms of long
+sp.inter.table[5,6]<-b23$ch$vol/long.hull$vol
+#define long/maur overlap in terms of maur
+sp.inter.table[6,5]<-b23$ch$vol/maur.hull$vol
+}
+#create table of longifolia/ mauritiana overlap
+  {
+    overlap<-as.data.frame(matrix(nrow=3,ncol=4))
+    overlap[1,1]<-""
+    overlap[2,1]<-"Total Volume"
+    overlap[3,1]<-"% of Volume"
+    overlap[1,2]<-"I. longifolia"
+    overlap[2,2]<-"80"
+    overlap[3,2]<-"9%"
+    overlap[1,3]<-"I. mauritiana"
+    overlap[2,3]<-"16,200"
+    overlap[3,3]<-"0.044%"
+    overlap[1,4]<-"Overlap"
+    overlap[2,4]<-"7.2"
+    overlap[3,4]<-"100%"
+    col11<-c(rep("grey80", times=3), rep(c("grey80","grey95","grey90"), times=3))
+    col1<-matrix(col11,nrow=3,ncol=4)
+    to <- ttheme_default(core=list(bg_params=list(fill= col1)))
+  }
+  
+#save full table isachne.box
+{
+tg = gridExtra::tableGrob(isachne.box[1:8,])
+h = grid::convertHeight(sum(tg$heights), "in", TRUE)
+w = grid::convertWidth(sum(tg$widths), "in", TRUE)
+ggplot2::ggsave("test.pdf", tg, width=w, height=h)
+}
+
+#Create Table of species determined vs Species of best fit
+{
+{
+sp.fit<-matrix(data=0,nrow=10,ncol=10)
+sp.fit<-as.data.frame(sp.fit)
+row.names(sp.fit)<-c("buet","homo","humb","humi","long","maur","musc","vaug","No Cube","Total")
+colnames(sp.fit)<-c("buet","homo","humb","humi","long","maur","musc","vaug","Indet.","Total")
+sp.fit
+#Enter Data
+sp.fit[1,1]<-3
+sp.fit[5,2]<-2
+sp.fit[6,2]<-2
+sp.fit[6,3]<-1
+sp.fit[5,4]<-1
+sp.fit[6,4]<-4
+sp.fit[6,5]<-1
+sp.fit[5,6]<-11
+sp.fit[6,6]<-27
+sp.fit[7,6]<-5
+sp.fit[9,6]<-2
+sp.fit[5,7]<-1
+sp.fit[6,7]<-2
+sp.fit[9,7]<-1
+sp.fit[9,8]<-1
+sp.fit[6,9]<-4
+sp.fit[9,9]<-1
+
+#Enter Totals
+sp.fit[10,1]<-3
+sp.fit[1,10]<-3
+sp.fit[10,2]<-4
+sp.fit[10,3]<-1
+sp.fit[10,4]<-5
+sp.fit[10,5]<-1
+sp.fit[5,10]<-15
+sp.fit[10,6]<-45
+sp.fit[6,10]<-41
+sp.fit[10,7]<-4
+sp.fit[7,10]<-5
+sp.fit[10,8]<-1
+sp.fit[10,9]<-5
+sp.fit[9,10]<-5
+sp.fit[10,10]<-69
+}#create table
+{
+sp.fit.table<-matrix(ncol=1,nrow=10)
+sp.fit.table<-as.data.frame(sp.fit.table)
+row.names(sp.fit.table)<-c("buet","homo","humb","humi","long","maur","musc","vaug","Indet.","Total")
+colnames(sp.fit.table)<-"Sp."
+row.names(sp.fit.table)<-c(1:10)
+sp.fit.table[1,1]<-"buet"
+sp.fit.table[2,1]<-"homo"
+sp.fit.table[3,1]<-"humb"
+sp.fit.table[4,1]<-"humi"
+sp.fit.table[5,1]<-"long"
+sp.fit.table[6,1]<-"maur"
+sp.fit.table[7,1]<-"musc"
+sp.fit.table[8,1]<-"vaug"
+sp.fit.table[9,1]<-"No Cube"
+sp.fit.table[10,1]<-"Total"
+
+sp.fit.table$buet<-sp.fit$buet
+sp.fit.table$homo<-sp.fit$homo
+sp.fit.table$humb<-sp.fit$humb
+sp.fit.table$humi<-sp.fit$humi
+sp.fit.table$long<-sp.fit$long
+sp.fit.table$maur<-sp.fit$maur
+sp.fit.table$musc<-sp.fit$musc
+sp.fit.table$vaug<-sp.fit$vaug
+sp.fit.table$Indet.<-sp.fit$Indet.
+sp.fit.table$Total<-sp.fit$Total
+
+}#Modify Table to include row names in table
+
+{
+colors<-matrix(c("grey95", "grey90"),nrow=10,ncol=11)
+for (i in 1:11){
+  t<-i*10
+  colors[t]<-"grey80"
+  i<-i+1
+}
+for (i in 1:10){
+  t<-i+100
+  colors[t]<-"grey80"
+  i<-i+1
+}
+for (i in 1:10){
+  t<-i
+  colors[t]<-"grey80"
+  i<-i+1
+}
+}#define colors
+
+tt <- ttheme_default(core=list(bg_params=list(fill= colors)))
+
+}
+  
+  #create table of extent to which specimens fell in 7-cubes
+  {
+    extent<-as.data.frame(matrix(nrow=2,ncol=7))
+    extent[1,1]<-"Number of characters\nwithin any 7-cube"
+    extent[2,1]<-"Number of specimens"
+    extent[1,2]<-"7"
+    extent[2,2]<-"14"
+    extent[1,3]<-"6"
+    extent[2,3]<-"18"
+    extent[1,4]<-"5"
+    extent[2,4]<-"15"
+    extent[1,5]<-"4"
+    extent[2,5]<-"12"
+    extent[1,6]<-"3"
+    extent[2,6]<-"4"
+    extent[1,7]<-"2"
+    extent[2,7]<-"1"
+    extent
+    colE<-matrix(c(rep("grey80",2),rep(c("grey80","grey95"),6)),nrow=2,ncol=7)
+    te <- ttheme_default(core=list(bg_params = list(fill=colE)))
+  }
+  {
+    extent<-as.data.frame(matrix(nrow=2,ncol=7))
+    extent[1,1]<-"Number of characters\nwithin any 7-cube"
+    extent[2,1]<-"Number of specimens"
+    extent[1,2]<-"7"
+    extent[2,2]<-"14"
+    extent[1,3]<-"6"
+    extent[2,3]<-"18"
+    extent[1,4]<-"5"
+    extent[2,4]<-"15"
+    extent[1,5]<-"4"
+    extent[2,5]<-"12"
+    extent[1,6]<-"3"
+    extent[2,6]<-"4"
+    extent[1,7]<-"2"
+    extent[2,7]<-"1"
+    extent
+    Vextent<-t(extent)
+    colV<-matrix(c(rep("grey80", 8), rep(c("grey95","grey90"),3)),nrow=7,ncol=2)
+    tv<-ttheme_default(core=list(bg_params = list(fill=colV)))
+  }
+  {
+    hextent<-as.data.frame(matrix(nrow=2,ncol=6))
+    hextent[1,1]<-"7"
+    hextent[2,1]<-"14"
+    hextent[1,2]<-"6"
+    hextent[2,2]<-"18"
+    hextent[1,3]<-"5"
+    hextent[2,3]<-"15"
+    hextent[1,4]<-"4"
+    hextent[2,4]<-"12"
+    hextent[1,5]<-"3"
+    hextent[2,5]<-"4"
+    hextent[1,6]<-"2"
+    hextent[2,6]<-"1"
+    hextent<-t(hextent)
+    colH<-matrix(c(rep("grey80", 6), rep(c("grey95","grey90"),3)),nrow=6,ncol=2)
+    th<-ttheme_default(core=list(bg_params = list(fill=colH)))
+  }
+  {
+    pextent<-as.data.frame(matrix(nrow=2,ncol=6))
+    pextent[1,1]<-"7"
+    pextent[2,1]<-"14"
+    pextent[1,2]<-"6"
+    pextent[2,2]<-"18"
+    pextent[1,3]<-"5"
+    pextent[2,3]<-"15"
+    pextent[1,4]<-"4"
+    pextent[2,4]<-"12"
+    pextent[1,5]<-"3"
+    pextent[2,5]<-"4"
+    pextent[1,6]<-"2"
+    pextent[2,6]<-"1"
+    colP<-matrix(c(rep(c("grey80","grey95"),6)),nrow=2,ncol=6)
+    tp <- ttheme_default(core=list(bg_params = list(fill=colP)))
+  }
+}
+
+#########################
+# Plots of 2 dimentions #
+#########################
+{
+  ## Blade Length v Blade Width
+  #Plot of Species description area of blade length vs blade width
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Blade length (mm)", ylab = "Blade Width (mm)", xlim=c(10,250), ylim=c(0,20))  
+    polygon(
+      x=c(mauritiana[1], mauritiana[2], mauritiana[2], mauritiana[1]),
+      y=c(mauritiana[3], mauritiana[3], mauritiana[4], mauritiana[4]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[3], buettneri[3], buettneri[4], buettneri[4]),
+      density = 20,
+      angle= 45,)
+    polygon(
+      x=c( vaughnii[1], vaughnii[2], vaughnii[2], vaughnii[1]),
+      y=c( vaughnii[3], vaughnii[3], vaughnii[4], vaughnii[4]),
+      col="purple")
+    polygon(
+      x=c( homonyma[1], homonyma[2], homonyma[2], homonyma[1]),
+      y=c( homonyma[3], homonyma[3], homonyma[4], homonyma[4]),
+      col="brown4")
+    polygon(
+      x=c( humbertiana[1], humbertiana[2], humbertiana[2], humbertiana[1]),
+      y=c( humbertiana[3], humbertiana[3], humbertiana[4], humbertiana[4]),
+      col="orange")
+    polygon(
+      x=c( humicola[1], humicola[2], humicola[2], humicola[1]),
+      y=c( humicola[3], humicola[3], humicola[4], humicola[4]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[1], muscicola[2], muscicola[2], muscicola[1]),
+      y=c( muscicola[3], muscicola[3], muscicola[4], muscicola[4]),
+      col="blue")
+    polygon(
+      x=c( longifolia[1], longifolia[2], longifolia[2], longifolia[1]),
+      y=c( longifolia[3], longifolia[3], longifolia[4], longifolia[4]),
+      col="green4")
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[3], buettneri[3], buettneri[4], buettneri[4]),
+      lty=5,
+      border="black",
+      col="NA")
+  }
+  #point data for blade length vs blade width
+  {
+    points(Blade.Length, Blade.Width, col="black", pch=16,)
+    points(Blade.Length[c(1:3)], Blade.Width[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Blade.Length[c(4:6)], Blade.Width[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Blade.Length[7], Blade.Width[7], col = "orange", pch = 20) #humbertiana
+    points(Blade.Length[c(8:11)], Blade.Width[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Blade.Length[c(23:64)], Blade.Width[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Blade.Length[c(12:15)], Blade.Width[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Blade.Length[16], Blade.Width[16], col = "green4", pch = 20) #longifolia
+    points(Blade.Length[17], Blade.Width[17], col = "purple", pch = 20) #vaughnii
+    points(Blade.Length[c(18:22)], Blade.Width[c(18:22)], col = "grey40", pch = 20) #indet
+    
+  }
+  
+  ## Blade Length v Panicle Length
+  #plot of species description area of blade length vs panicle length 
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Blade length (mm)", ylab = "Panicle length (mm)", xlim=c(10,250), ylim=c(10,250))  
+    
+    polygon(
+      x=c(mauritiana[1], mauritiana[2], mauritiana[2], mauritiana[1]),
+      y=c(mauritiana[5], mauritiana[5], mauritiana[6], mauritiana[6]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[5], buettneri[5], buettneri[6], buettneri[6]),
+      density = 20,
+      angle= 45,)
+    polygon(
+      x=c( vaughnii[1], vaughnii[2], vaughnii[2], vaughnii[1]),
+      y=c( vaughnii[5], vaughnii[5], vaughnii[6], vaughnii[6]),
+      col="purple")
+    polygon(
+      x=c( homonyma[1], homonyma[2], homonyma[2], homonyma[1]),
+      y=c( homonyma[5], homonyma[5], homonyma[6], homonyma[6]),
+      col="brown4")
+    polygon(
+      x=c( humbertiana[1], humbertiana[2], humbertiana[2], humbertiana[1]),
+      y=c( humbertiana[5], humbertiana[5], humbertiana[6], humbertiana[6]),
+      col="orange")
+    polygon(
+      x=c( humicola[1], humicola[2], humicola[2], humicola[1]),
+      y=c( humicola[5], humicola[5], humicola[6], humicola[6]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[1], muscicola[2], muscicola[2], muscicola[1]),
+      y=c( muscicola[5], muscicola[5], muscicola[6], muscicola[6]),
+      col="blue")
+    polygon(
+      x=c( longifolia[1], longifolia[2], longifolia[2], longifolia[1]),
+      y=c( longifolia[5], longifolia[5], longifolia[6], longifolia[6]),
+      col="green4")
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[5], buettneri[5], buettneri[6], buettneri[6]),
+      lty=5,
+      border="black",
+      col="NA")
+    polygon(
+      x=c(mauritiana[1], mauritiana[2], mauritiana[2], mauritiana[1]),
+      y=c(mauritiana[5], mauritiana[5], mauritiana[6], mauritiana[6]),
+      border="black",
+      col="NA",
+      lty=5)
+  }
+  #point data for blade length vs panicle length
+  {
+    points(Blade.Length, Panicle.Length, col="black", pch=16,)
+    points(Blade.Length[c(1:3)], Panicle.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Blade.Length[c(4:6)], Panicle.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Blade.Length[7], Panicle.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Blade.Length[c(8:11)], Panicle.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Blade.Length[c(23:64)], Panicle.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Blade.Length[c(12:15)], Panicle.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Blade.Length[16], Panicle.Length[16], col = "green4", pch = 20) #longifolia
+    points(Blade.Length[17], Panicle.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Blade.Length[c(18:22)], Panicle.Length[c(18:22)], col = "grey40", pch = 20) #indet
+  }
+  
+  ## Panicle Length v Spikelet Length  ###***###
+  #plot of species description area of panicle length vs spikelet length 
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Panicle length (mm)", ylab = "Spikelet length (mm)", xlim=c(10,350), ylim=c(0.5,3))  
+    polygon(
+      x=c(buettneri[5], buettneri[6], buettneri[6], buettneri[5]),
+      y=c(buettneri[7], buettneri[7], buettneri[8], buettneri[8]),
+      col="red")
+    polygon(
+      x=c(mauritiana[5], mauritiana[6], mauritiana[6], mauritiana[5]),
+      y=c(mauritiana[7], mauritiana[7], mauritiana[8], mauritiana[8]),
+      col="skyblue")
+    polygon(
+      x=c( homonyma[5], homonyma[6], homonyma[6], homonyma[5]),
+      y=c( homonyma[7], homonyma[7], homonyma[8], homonyma[8]),
+      col="brown4")
+    polygon(
+      x=c( humbertiana[5], humbertiana[6], humbertiana[6], humbertiana[5]),
+      y=c( humbertiana[7], humbertiana[7], humbertiana[8], humbertiana[8]),
+      col="orange",
+      border="black")
+    polygon(
+      x=c( humicola[5], humicola[6], humicola[6], humicola[5]),
+      y=c( humicola[7], humicola[7], humicola[8], humicola[8]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[5], muscicola[6], muscicola[6], muscicola[5]),
+      y=c( muscicola[7], muscicola[7], muscicola[8], muscicola[8]),
+      col="blue")
+    polygon(
+      x=c( longifolia[5], longifolia[6], longifolia[6], longifolia[5]),
+      y=c( longifolia[7], longifolia[7], longifolia[8], longifolia[8]),
+      col="green4")
+    lines(
+      x=c(mauritiana[5], mauritiana[6]),
+      y=c(mauritiana[8], mauritiana[8]),
+      lty=1,
+      col="black")
+    lines(
+      x=c(mauritiana[5], mauritiana[6]),
+      y=c(mauritiana[8], mauritiana[8]),
+      lty=5,
+      col="skyblue")
+    lines(
+      x=c(buettneri[5], buettneri[6]),
+      y=c(buettneri[8], buettneri[8]),
+      lty=1,
+      col="black")
+    lines(
+      x=c(buettneri[5], buettneri[6]),
+      y=c(buettneri[8], buettneri[8]),
+      lty=5,
+      col="red")
+    polygon(
+      x=c( vaughnii[5], vaughnii[6], vaughnii[6], vaughnii[5]),
+      y=c( vaughnii[7], vaughnii[7], vaughnii[8], vaughnii[8]),
+      col="purple")
+    legend("bottomright", inset=c(0,0), legend=c("buettneri","homonyma","humbertiana","humicola","longifolia","mauritiana","muscicola","vaughnii","Indet."), 
+           fill= c("red", "brown4","orange","yellowgreen","green4","skyblue","blue","purple","grey40",
+                   pch=20, cex=0.8))
+    title("Isachne Panicle Length v Spikelet length","Taxonomic Species Areas and Specimen Data Points")
+  }
+  #Point data panicle length vs spikelet length
+  {
+    points(Panicle.Length, Spikelet.Length, col="black", pch=16,)
+    points(Panicle.Length[c(1:3)], Spikelet.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Panicle.Length[c(4:6)], Spikelet.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Panicle.Length[7], Spikelet.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Panicle.Length[c(8:11)], Spikelet.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Panicle.Length[c(23:64)], Spikelet.Length[c(23:64)], col = "skyblue", pch = 20) #mauritiana
+    points(Panicle.Length[c(12:15)], Spikelet.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Panicle.Length[16], Spikelet.Length[16], col = "green4", pch = 20) #longifolia
+    points(Panicle.Length[17], Spikelet.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Panicle.Length[c(18:22)], Spikelet.Length[c(18:22)], col = "grey40", pch = 20) #indet
+    
+    #points for 14 
+    points(Panicle.Length[seven], Spikelet.Length[seven], col="black", pch=16, cex=1.0)
+    points(Panicle.Length[3],Spikelet.Length[3], col="red", pch=20, cex=1.0)
+    points(Panicle.Length[seven.maur],Spikelet.Length[seven.maur], col="skyblue", pch=20, cex=1.0)
+    points(Panicle.Length[12],Spikelet.Length[12], col="blue", pch=20, cex=1.0)
+    points(Panicle.Length[16],Spikelet.Length[16], col="green4", pch=20, cex=1.0)
+    
+    
+  }
+
+  ## Spikelet Length v L.Lemma Length
+  #plot of species description area of spikelet length vs L. lemma length
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Spikelet length (mm)", ylab = "L. lemma length (mm)", xlim=c(0.5,3), ylim=c(0.5,2.5))  
+    
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[11], buettneri[11], buettneri[12], buettneri[12]),
+      col="red")
+    polygon(
+      x=c(mauritiana[7], mauritiana[8], mauritiana[8], mauritiana[7]),
+      y=c(mauritiana[11], mauritiana[11], mauritiana[12], mauritiana[12]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[11], buettneri[11], buettneri[12], buettneri[12]),
+      lty=5,
+      border="black",
+      col="NA")
+    polygon(
+      x=c( homonyma[7], homonyma[8], homonyma[8], homonyma[7]),
+      y=c( homonyma[11], homonyma[11], homonyma[12], homonyma[12]),
+      col="orange")
+    polygon(
+      x=c( humbertiana[7]-0.01, humbertiana[8]-0.01, humbertiana[8]-0.01, humbertiana[7]-0.01),
+      y=c( humbertiana[11], humbertiana[11], humbertiana[12], humbertiana[12]),
+      col="brown4",
+      border="black")
+    polygon(
+      x=c( humicola[7], humicola[8], humicola[8], humicola[7]),
+      y=c( humicola[11], humicola[11], humicola[12], humicola[12]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[7], muscicola[8], muscicola[8], muscicola[7]),
+      y=c( muscicola[11], muscicola[11], muscicola[12], muscicola[12]),
+      col="blue")
+    polygon(
+      x=c( longifolia[7], longifolia[8], longifolia[8], longifolia[7]),
+      y=c( longifolia[11], longifolia[11], longifolia[12], longifolia[12]),
+      col="green4",
+      border="black")
+    polygon(
+      x=c( vaughnii[7], vaughnii[8], vaughnii[8], vaughnii[7]),
+      y=c( vaughnii[11], vaughnii[11], vaughnii[12], vaughnii[12]),
+      col="purple")
+    #points(vaughnii[7], vaughnii[11], pch=4, col="purple")
+    #points(homonyma[7], homonyma[11], pch=4, col="orange")
+  }
+  #Point data spikelet length vs L. lemma length
+  {
+    points(Spikelet.Length, L.Lemma.Length, col="black", pch=16,)
+    points(Spikelet.Length[c(1:3)], L.Lemma.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Spikelet.Length[c(4:6)], L.Lemma.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Spikelet.Length[7], L.Lemma.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Spikelet.Length[c(8:11)], L.Lemma.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Spikelet.Length[c(23:64)], L.Lemma.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Spikelet.Length[c(12:15)], L.Lemma.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Spikelet.Length[16], L.Lemma.Length[16], col = "green4", pch = 20) #longifolia
+    points(Spikelet.Length[17], L.Lemma.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Spikelet.Length[c(18:22)], L.Lemma.Length[c(18:22)], col = "grey40", pch = 20) #indet
+    
+  }
+  
+  ## Spikelet Length v U. Lemma Length
+  #plot of species description area of spikelet length vs U. lemma length
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Spikelet length (mm)", ylab = "U. lemma length (mm)", xlim=c(0.5,3), ylim=c(0.5,2.5))  
+    
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[13], buettneri[13], buettneri[14], buettneri[14]),
+      col="red")
+    polygon(
+      x=c(mauritiana[7], mauritiana[8], mauritiana[8], mauritiana[7]),
+      y=c(mauritiana[13], mauritiana[13], mauritiana[14], mauritiana[14]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[13], buettneri[13], buettneri[14], buettneri[14]),
+      lty=5,
+      border="black",
+      col="NA")
+    polygon(
+      x=c( homonyma[7], homonyma[8], homonyma[8], homonyma[7]),
+      y=c( homonyma[13], homonyma[13], homonyma[14], homonyma[14]),
+      col="orange")
+    polygon(
+      x=c( humbertiana[7], humbertiana[8], humbertiana[8], humbertiana[7]),
+      y=c( humbertiana[13], humbertiana[13], humbertiana[14], humbertiana[14]),
+      col="brown4",
+      border="black")
+    polygon(
+      x=c( humicola[7], humicola[8], humicola[8], humicola[7]),
+      y=c( humicola[13], humicola[13], humicola[14], humicola[14]),
+      col="yellowgreen",
+      border="black")
+    polygon(
+      x=c( muscicola[7], muscicola[8], muscicola[8], muscicola[7]),
+      y=c( muscicola[13], muscicola[13], muscicola[14], muscicola[14]),
+      col="blue")
+    polygon(
+      x=c( longifolia[7], longifolia[8], longifolia[8], longifolia[7]),
+      y=c( longifolia[13], longifolia[13], longifolia[14], longifolia[14]),
+      col="green4",
+      border="black")
+    polygon(
+      x=c( vaughnii[7], vaughnii[8], vaughnii[8], vaughnii[7]),
+      y=c( vaughnii[13], vaughnii[13], vaughnii[14], vaughnii[14]),
+      col="purple",
+      border="black")
+    #points(vaughnii[7], vaughnii[13], pch=4, col="purple")
+    #points(homonyma[7], homonyma[13], pch=4, col="orange")
+  }
+  #Point data spikelet length vs U. lemma length
+  {
+    points(Spikelet.Length, U.Lemma.Length, col="black", pch=16,)
+    points(Spikelet.Length[c(1:3)], U.Lemma.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Spikelet.Length[c(4:6)],U.Lemma.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Spikelet.Length[7], U.Lemma.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Spikelet.Length[c(8:11)], U.Lemma.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Spikelet.Length[c(23:64)], U.Lemma.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Spikelet.Length[c(12:15)], U.Lemma.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Spikelet.Length[16], U.Lemma.Length[16], col = "green4", pch = 20) #longifolia
+    points(Spikelet.Length[17], U.Lemma.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Spikelet.Length[c(18:22)], U.Lemma.Length[c(18:22)], col = "grey40", pch = 20) #indet
+    
+  }
+  
+  ## L. Lemma Length v U. Lemma Length
+  #plot of species description area of L. lemma length vs U. lemma length
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "L. lemma length (mm)", ylab = "U. lemma length (mm)", xlim=c(1,2.5), ylim=c(0.5,2))  
+    
+    polygon(
+      x=c(buettneri[11], buettneri[12], buettneri[12], buettneri[11]),
+      y=c(buettneri[13], buettneri[13], buettneri[14], buettneri[14]),
+      col="red")
+    polygon(
+      x=c(mauritiana[11], mauritiana[12], mauritiana[12], mauritiana[11]),
+      y=c(mauritiana[13], mauritiana[13], mauritiana[14], mauritiana[14]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[11], buettneri[12], buettneri[12], buettneri[11]),
+      y=c(buettneri[13], buettneri[13], buettneri[14], buettneri[14]),
+      lty=5,
+      border="black",
+      col="NA")
+    polygon(
+      x=c( homonyma[11], homonyma[12], homonyma[12], homonyma[11]),
+      y=c( homonyma[13], homonyma[13], homonyma[14], homonyma[14]),
+      col="orange")
+    polygon(
+      x=c( humbertiana[11], humbertiana[12], humbertiana[12], humbertiana[11]),
+      y=c( humbertiana[13], humbertiana[13], humbertiana[14], humbertiana[14]),
+      col="brown4")
+    polygon(
+      x=c( humicola[11], humicola[12], humicola[12], humicola[11]),
+      y=c( humicola[13], humicola[13], humicola[14], humicola[14]),
+      col="yellowgreen",
+      border="black")
+    polygon(
+      x=c( muscicola[11], muscicola[12], muscicola[12], muscicola[11]),
+      y=c( muscicola[13], muscicola[13], muscicola[14], muscicola[14]),
+      col="blue")
+    polygon(
+      x=c( longifolia[11], longifolia[12], longifolia[12], longifolia[11]),
+      y=c( longifolia[13], longifolia[13], longifolia[14], longifolia[14]),
+      col="green4")
+    polygon(
+      x=c( vaughnii[11], vaughnii[12], vaughnii[12], vaughnii[11]),
+      y=c( vaughnii[13], vaughnii[13], vaughnii[14], vaughnii[14]),
+      col="purple")
+    #points(vaughnii[11], vaughnii[13], pch=4, col="purple")
+    #points(homonyma[11], homonyma[13], pch=4, col="orange")
+    #points(longifolia[11], longifolia[13], pch=4, col="blue")
+    #points(humicola[c(11,12)], humicola[c(13,14)], pch=4, col="yellowgreen")
+  }
+  #Point data L. lemma length vs U. lemma length
+  {
+    points(L.Lemma.Length, U.Lemma.Length, col="black", pch=16,)
+    points(L.Lemma.Length[c(1:3)], U.Lemma.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(L.Lemma.Length[c(4:6)],U.Lemma.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(L.Lemma.Length[7], U.Lemma.Length[7], col = "orange", pch = 20) #humbertiana
+    points(L.Lemma.Length[c(8:11)], U.Lemma.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(L.Lemma.Length[c(23:64)], U.Lemma.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(L.Lemma.Length[c(12:15)], U.Lemma.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(L.Lemma.Length[16], U.Lemma.Length[16], col = "green4", pch = 20) #longifolia
+    points(L.Lemma.Length[17], U.Lemma.Length[17], col = "purple", pch = 20) #vaughnii
+    points(L.Lemma.Length[c(18:22)], U.Lemma.Length[c(18:22)], col = "grey40", pch = 20) #indet
+    
+  }
+  
+  ## Spikelet Length v L. Glume Length
+  #plot of species description area of spikelet length vs L. Glume length
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Spikelet length (mm)", ylab = "L. Glume length (mm)", xlim=c(0.5,3), ylim=c(0.5,2.6))  
+    
+    polygon(
+      x=c(mauritiana[7], mauritiana[8], mauritiana[8], mauritiana[7]),
+      y=c(mauritiana[9], mauritiana[9], mauritiana[10], mauritiana[10]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[9], buettneri[9], buettneri[10], buettneri[10]),
+      col="red")
+    polygon(
+      x=c( homonyma[7], homonyma[8], homonyma[8], homonyma[7]),
+      y=c( homonyma[9], homonyma[9], homonyma[10], homonyma[10]),
+      col="orange")
+    #points(homonyma[7], homonyma[9], col="orange", pch=4)
+    polygon(
+      x=c( humbertiana[7], humbertiana[8], humbertiana[8], humbertiana[7]),
+      y=c( humbertiana[9], humbertiana[9], humbertiana[10], humbertiana[10]),
+      col="brown4",
+      border="black")
+    polygon(
+      x=c( humicola[7], humicola[8], humicola[8], humicola[7]),
+      y=c( humicola[9], humicola[9], humicola[10], humicola[10]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[7], muscicola[8], muscicola[8], muscicola[7]),
+      y=c( muscicola[9], muscicola[9], muscicola[10], muscicola[10]),
+      col="blue")
+    polygon(
+      x=c( longifolia[7], longifolia[8], longifolia[8], longifolia[7]),
+      y=c( longifolia[9], longifolia[9], longifolia[10], longifolia[10]),
+      col="green4",
+      border="black")
+    polygon(
+      x=c( vaughnii[7], vaughnii[8], vaughnii[8], vaughnii[7]),
+      y=c( vaughnii[9], vaughnii[9], vaughnii[10], vaughnii[10]),
+      col="purple")
+  }
+  #Point data spikelet length vs L. Glume length
+  {
+    points(Spikelet.Length, L.Glume.Length, col="black", pch=16,)
+    points(Spikelet.Length[c(1:3)], L.Glume.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Spikelet.Length[c(4:6)], L.Glume.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Spikelet.Length[7], L.Glume.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Spikelet.Length[c(8:11)], L.Glume.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Spikelet.Length[c(23:64)], L.Glume.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Spikelet.Length[c(12:15)], L.Glume.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Spikelet.Length[16], L.Glume.Length[16], col = "green4", pch = 20) #longifolia
+    points(Spikelet.Length[17], L.Glume.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Spikelet.Length[c(18:22)], L.Glume.Length[c(18:22)], col = "grey40", pch = 20) #indet
+  }
+  
+  
+  ## Spikelet Length v U. Glume Length
+  #plot of species description area of spikelet length vs U. Glume length
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Spikelet length (mm)", ylab = "U. Glume length (mm)", xlim=c(0.5,3), ylim=c(0.5,2.6))  
+    
+    polygon(
+      x=c(mauritiana[7], mauritiana[8], mauritiana[8], mauritiana[7]),
+      y=c(mauritiana[9], mauritiana[9], mauritiana[10], mauritiana[10]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[7], buettneri[8], buettneri[8], buettneri[7]),
+      y=c(buettneri[9], buettneri[9], buettneri[10], buettneri[10]),
+      col="red")
+    polygon(
+      x=c( homonyma[7], homonyma[8], homonyma[8], homonyma[7]),
+      y=c( homonyma[9], homonyma[9], homonyma[10], homonyma[10]),
+      col="orange")
+    #points(homonyma[7], homonyma[9], col="orange", pch=4)
+    polygon(
+      x=c( humbertiana[7], humbertiana[8], humbertiana[8], humbertiana[7]),
+      y=c( humbertiana[9], humbertiana[9], humbertiana[10], humbertiana[10]),
+      col="brown4",
+      border="black")
+    polygon(
+      x=c( humicola[7], humicola[8], humicola[8], humicola[7]),
+      y=c( humicola[9], humicola[9], humicola[10], humicola[10]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[7], muscicola[8], muscicola[8], muscicola[7]),
+      y=c( muscicola[9], muscicola[9], muscicola[10], muscicola[10]),
+      col="blue")
+    polygon(
+      x=c( longifolia[7], longifolia[8], longifolia[8], longifolia[7]),
+      y=c( longifolia[9], longifolia[9], longifolia[10], longifolia[10]),
+      col="green4")
+    polygon(
+      x=c( vaughnii[7], vaughnii[8], vaughnii[8], vaughnii[7]),
+      y=c( vaughnii[9], vaughnii[9], vaughnii[10], vaughnii[10]),
+      col="purple")
+  }
+  #Point data spikelet length vs U. Glume length
+  {
+    points(Spikelet.Length, U.Glume.Length, col="black", pch=16,)
+    points(Spikelet.Length[c(1:3)], U.Glume.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Spikelet.Length[c(4:6)], U.Glume.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Spikelet.Length[7], U.Glume.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Spikelet.Length[c(8:11)], U.Glume.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Spikelet.Length[c(23:64)], U.Glume.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Spikelet.Length[c(12:15)], U.Glume.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Spikelet.Length[16], U.Glume.Length[16], col = "green4", pch = 20) #longifolia
+    points(Spikelet.Length[17], U.Glume.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Spikelet.Length[c(18:22)], U.Glume.Length[c(18:22)], col = "grey40", pch = 20) #indet
+  }
+  
+  ## Blade Length v Spikelet Length 
+  #plot of species description area of blade length vs spikelet length 
+  {
+    plot(c(1:20), c(1:20), col = "white", xlab = "Blade length (mm)", ylab = "Spikelet length (mm)", xlim=c(10,300), ylim=c(0.5,3))  
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[7], buettneri[7], buettneri[8], buettneri[8]),
+      col="red")
+    polygon(
+      x=c(mauritiana[1], mauritiana[2], mauritiana[2], mauritiana[1]),
+      y=c(mauritiana[7], mauritiana[7], mauritiana[8], mauritiana[8]),
+      col="skyblue")
+    polygon(
+      x=c(buettneri[1], buettneri[2], buettneri[2], buettneri[1]),
+      y=c(buettneri[7], buettneri[7], buettneri[8], buettneri[8]),
+      border="black",
+      lty=5)
+    polygon(
+      x=c( homonyma[1], homonyma[2], homonyma[2], homonyma[1]),
+      y=c( homonyma[7], homonyma[7], homonyma[8], homonyma[8]),
+      col="brown4",
+      border="black")
+    polygon(
+      x=c( humbertiana[1], humbertiana[2], humbertiana[2], humbertiana[1]),
+      y=c( humbertiana[7], humbertiana[7], humbertiana[8], humbertiana[8]),
+      col="orange",
+      border="black")
+    polygon(
+      x=c( humicola[1], humicola[2], humicola[2], humicola[1]),
+      y=c( humicola[7], humicola[7], humicola[8], humicola[8]),
+      col="yellowgreen")
+    polygon(
+      x=c( muscicola[1], muscicola[2], muscicola[2], muscicola[1]),
+      y=c( muscicola[7], muscicola[7], muscicola[8], muscicola[8]),
+      col="blue")
+    polygon(
+      x=c( longifolia[1], longifolia[2], longifolia[2], longifolia[1]),
+      y=c( longifolia[7], longifolia[7], longifolia[8], longifolia[8]),
+      col="green4")
+    polygon(
+      x=c( vaughnii[1], vaughnii[2], vaughnii[2], vaughnii[1]),
+      y=c( vaughnii[7], vaughnii[7], vaughnii[8], vaughnii[8]),
+      col="purple",
+      border="black")
+    legend("topright", inset=c(0,0), legend=c("buettneri","homonyma","humbertiana","humicola","longifolia","mauritiana","muscicola","vaughnii","Indet."), 
+           fill= c("red", "brown4","orange","yellowgreen","green4","skyblue","blue","purple","grey40",
+                   pch=20, cex=0.8))
+    title("Isachne Blade Length v Spikelet length","Taxonomic Species Areas and Specimen Data Points")
+    
+  }
+  #Point data blade length vs spikelet length
+  {
+    points(Blade.Length, Spikelet.Length, col="black", pch=16,)
+    points(Blade.Length[c(1:3)], Spikelet.Length[c(1:3)], col = "red", pch= 20) #buettneri
+    points(Blade.Length[c(4:6)], Spikelet.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+    points(Blade.Length[7], Spikelet.Length[7], col = "orange", pch = 20) #humbertiana
+    points(Blade.Length[c(8:11)], Spikelet.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+    points(Blade.Length[c(23:64)], Spikelet.Length[c(23:64)], col = "skyblue", pch =20) #mauritiana
+    points(Blade.Length[c(12:15)], Spikelet.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+    points(Blade.Length[16], Spikelet.Length[16], col = "green4", pch = 20) #longifolia
+    points(Blade.Length[17], Spikelet.Length[17], col = "purple", pch = 20) #vaughnii
+    points(Blade.Length[c(18:22)], Spikelet.Length[c(18:22)], col = "grey40", pch = 20) #indet
+    
+  }
+  
+}
+
+#############################
+# Visualization of 3D cubes #
+#############################
+{
+# Blade Length x Panicle Length x Spikelet Length
+#Generate Cubes
+{
+  buett.c<-cube3d(color="red", alpha=0.2) %>%
+    translate3d(1,1,1)%>%
+    scale3d(0.5,0.5,0.1)
+  
+  homo.c<-cube3d(color="#91582c", alpha=0.2)%>%
+    translate3d(-1,-3,3)%>%
+    scale3d(0.05,0.125,0.05)
+  
+  humb.c<-cube3d(color="orange", alpha=0.2)%>%
+    translate3d(5,-3,8)%>%
+    scale3d(0.066,0.05,0.05)
+  
+  humi.c<-cube3d(color="yellowgreen",alpha=0.2)%>%
+    translate3d(0.5,-15.2,5)%>%
+    scale3d(0.1166,0.025,0.05)
+  
+  long.c<-cube3d(color="green4",alpha=0.2)%>%
+    translate3d(2,1,4.5)%>%
+    scale3d(0.25,0.5, 0.083)
+  
+  maur.c<-cube3d(color="skyblue", alpha=0.2) %>%
+    translate3d(1,1,2.5)%>%
+    scale3d(0.5,0.5,0.1)
+  
+  musc.c<-cube3d(color="blue",alpha=0.2)%>%
+    translate3d(6,2,5)%>%
+    scale3d(0.1,0.5,0.09)
+  
+  vaug.c<-cube3d(color="purple",alpha=0.2)%>%
+    translate3d(-0.3,-0.9,6)%>%
+    scale3d(0.166,0.325, 0.1)
+}# *not accurate, just for visualization
+}
+}
+
+#################
+# Final Results #
+#################
+
+#Volume of 7-cubes
+  grid.table(pheno.vol, rows=NULL)
+#volume of overlap between 7-cubes
+  grid.table(overlap, theme = to, rows=NULL, cols=NULL)
+#Table of species determinations vs species of best fit
+  grid.table(sp.fit.table, theme = tt, rows=NULL)
+#Table of extent to which specimens fall within limits of taxonomic species 7-cubes
+  grid.table(extent, theme=te, row=NULL, col=NULL)
+#Vetical table of extent to which specimens fall within limits of taxonomic species 7-cubes
+  grid.table(Vextent, theme=tv, row=NULL, col=NULL)
+#Vetical table of extent NO HEADERS to which specimens fall within limits of taxonomic species 7-cubes
+  grid.table(hextent, theme=th, row=NULL, col=NULL)
+#Table of extent NO HEADERS to which specimens fall within limits of taxonomic species 7-cubes
+  grid.table(pextent, theme=tp, row=NULL, col=NULL)
+#plot cubes
+  {
+  shade3d(buett.c)
+  shade3d(homo.c)
+  shade3d(humb.c)
+  shade3d(humi.c)
+  shade3d(long.c)
+  shade3d(maur.c)
+  shade3d(musc.c)
+  shade3d(vaug.c)
+}
+#plot 2d panicle x spikelet
+  {
+## Panicle Length v Spikelet Length  ###***###
+#plot of species description area of panicle length vs spikelet length 
+{
+  plot(c(1:20), c(1:20), col = "white", xlab = "Panicle length (mm)", ylab = "Spikelet length (mm)", xlim=c(10,350), ylim=c(0.5,3))  
+  polygon(
+    x=c(buettneri[5], buettneri[6], buettneri[6], buettneri[5]),
+    y=c(buettneri[7], buettneri[7], buettneri[8], buettneri[8]),
+    col="red")
+  polygon(
+    x=c(mauritiana[5], mauritiana[6], mauritiana[6], mauritiana[5]),
+    y=c(mauritiana[7], mauritiana[7], mauritiana[8], mauritiana[8]),
+    col="skyblue")
+  polygon(
+    x=c( homonyma[5], homonyma[6], homonyma[6], homonyma[5]),
+    y=c( homonyma[7], homonyma[7], homonyma[8], homonyma[8]),
+    col="brown4")
+  polygon(
+    x=c( humbertiana[5], humbertiana[6], humbertiana[6], humbertiana[5]),
+    y=c( humbertiana[7], humbertiana[7], humbertiana[8], humbertiana[8]),
+    col="orange",
+    border="black")
+  polygon(
+    x=c( humicola[5], humicola[6], humicola[6], humicola[5]),
+    y=c( humicola[7], humicola[7], humicola[8], humicola[8]),
+    col="yellowgreen")
+  polygon(
+    x=c( muscicola[5], muscicola[6], muscicola[6], muscicola[5]),
+    y=c( muscicola[7], muscicola[7], muscicola[8], muscicola[8]),
+    col="blue")
+  polygon(
+    x=c( longifolia[5], longifolia[6], longifolia[6], longifolia[5]),
+    y=c( longifolia[7], longifolia[7], longifolia[8], longifolia[8]),
+    col="green4")
+  lines(
+    x=c(mauritiana[5], mauritiana[6]),
+    y=c(mauritiana[8], mauritiana[8]),
+    lty=1,
+    col="black")
+  lines(
+    x=c(mauritiana[5], mauritiana[6]),
+    y=c(mauritiana[8], mauritiana[8]),
+    lty=5,
+    col="skyblue")
+  lines(
+    x=c(buettneri[5], buettneri[6]),
+    y=c(buettneri[8], buettneri[8]),
+    lty=1,
+    col="black")
+  lines(
+    x=c(buettneri[5], buettneri[6]),
+    y=c(buettneri[8], buettneri[8]),
+    lty=5,
+    col="red")
+  polygon(
+    x=c( vaughnii[5], vaughnii[6], vaughnii[6], vaughnii[5]),
+    y=c( vaughnii[7], vaughnii[7], vaughnii[8], vaughnii[8]),
+    col="purple")
+  legend("bottomright", inset=c(0,0), legend=c("buettneri","homonyma","humbertiana","humicola","longifolia","mauritiana","muscicola","vaughnii","Indet."), 
+         fill= c("red", "brown4","orange","yellowgreen","green4","skyblue","blue","purple","grey40",
+                 pch=20, cex=0.8))
+  title("Isachne Panicle Length v Spikelet length","Taxonomic Species Areas and Specimen Data Points")
+}
+}
+    #points 
+      {points(Panicle.Length, Spikelet.Length, col="black", pch=16,)
+points(Panicle.Length[c(1:3)], Spikelet.Length[c(1:3)], col = "red", pch= 20) #buettneri
+points(Panicle.Length[c(4:6)], Spikelet.Length[c(4:6)], col = "brown4", pch = 20) #homonyma
+points(Panicle.Length[7], Spikelet.Length[7], col = "orange", pch = 20) #humbertiana
+points(Panicle.Length[c(8:11)], Spikelet.Length[c(8:11)], col = "yellowgreen", pch = 20) #humicola
+points(Panicle.Length[c(23:64)], Spikelet.Length[c(23:64)], col = "skyblue", pch = 20) #mauritiana
+points(Panicle.Length[c(12:15)], Spikelet.Length[c(12:15)], col = "blue", pch = 20) #muscicola
+points(Panicle.Length[16], Spikelet.Length[16], col = "green4", pch = 20) #longifolia
+points(Panicle.Length[17], Spikelet.Length[17], col = "purple", pch = 20) #vaughnii
+points(Panicle.Length[c(18:22)], Spikelet.Length[c(18:22)], col = "grey40", pch = 20) #indet
+}# all
+      {points(Panicle.Length[seven], Spikelet.Length[seven], col="black", pch=16, cex=1.0)
+      points(Panicle.Length[3],Spikelet.Length[3], col="red", pch=20, cex=1.0)
+      points(Panicle.Length[seven.maur],Spikelet.Length[seven.maur], col="skyblue", pch=20, cex=1.0)
+      points(Panicle.Length[12],Spikelet.Length[12], col="blue", pch=20, cex=1.0)
+      points(Panicle.Length[16],Spikelet.Length[16], col="green4", pch=20, cex=1.0)
+    }# 14 inside a 7-cube
+#barplot
+  {barplot(c(14,18,15,12,4,1),names.arg=c(7,6,5,4,3,2), col=c("green4",rep("grey80", 5)),
+          xlab="Maximum number of characters that fall within any 7-cube",
+          ylab="number of specimens",
+          main="Extent To Which Specimens Fall Within Any 7-cube")}
